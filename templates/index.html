@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+	  form {
+	    display: flex;
+	    flex-direction: column;
+	    align-items: flex-start;
+	  }
+
+	  label, input {
+	    margin: 5px 0;
+	    width: 200px;
+            height: 40px;
+            font-size: 20px;
+	  }
+
+	  input[type="submit"] {
+	    width: auto;
+	  }
+}
+
+</style>
+	<title>My Flask App</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+  // Attach event listener to the form input fields
+  $("input[name='stop'], input[name='target'], input[name='Rmultiple']").on("input", function() {
+    // Create an object to hold the form data
+    var formData = {
+      "stop": $("input[name='stop']").val(),
+      "target": $("input[name='target']").val(),
+      "Rmultiple": $("input[name='Rmultiple']").val()
+    };
+
+    // Send the form data to the Flask server using an AJAX request
+    $.ajax({
+      type: "POST",
+      url: "/calculate_entry",
+      contentType: "application/json", // Set the content type to JSON
+      data: JSON.stringify(formData), // Convert the form data to a JSON object
+      success: function(response) {
+        // Update the calculated entry value in the HTML
+        $("#value").val(response["value"]);
+      }
+    });
+  });
+});
+</script>
+
+</head>
+<body>
+	<h1>My Flask App</h1>
+	<form id="entry-form">
+		<label for="stop">Stop:</label>
+		<input type="number" name="stop" id="stop" step="0.25" required value="{{ request.form.get('stop', '') }}"><br>
+
+		<label for="target">High Probability Target:</label>
+		<input type="number" name="target" id="target" step="0.25" required value="{{ request.form.get('target', '') }}"><br>
+
+		<label for="Rmultiple">R-Multiple:</label>
+		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" required value="{{ request.form.get('Rmultiple', '') }}"><br>
+
+		<label for="entry-value">Calculated Entry:</label>
+		<input type="number" name="entry" id="value" step="0.25" value="{{ value }}"><br>
+
+		<input type="submit" value="Calculate Entry">
+	</form>
+</body>
+</html>
+
