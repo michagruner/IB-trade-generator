@@ -9,13 +9,28 @@ import json
 app = Flask(__name__)
 
 
-default_Rmultiple = 2.5
-MAX_RISK = 0
-TICK_SIZE = 0
-TICK_VALUE = 0
+global default_Rmultiple
+global MAX_RISK
+global TICK_SIZE
+global TICK_VALUE
 
+with open('config.json') as f:
+   config = json.load(f)
+
+   default_Rmultiple = config['Rmultiple']
+   MAX_RISK = config['MaxRisk']
+   TICK_SIZE = config['TickSize']
+   TICK_VALUE = config['TickValue']
 
 def calculate_entry(stop, target, Rmultiple):
+
+    with open('config.json') as f:
+      config = json.load(f)
+
+      MAX_RISK = int(config['MaxRisk'])
+      TICK_SIZE = float(config['TickSize'])
+      TICK_VALUE = float(config['TickValue'])
+
     def objective(x):
         return x[0]
 
@@ -33,8 +48,14 @@ def calculate_entry(stop, target, Rmultiple):
     bounds = [(stop, target)]
     cons = [{'type': 'eq', 'fun': constraint1}, {'type': 'ineq', 'fun': constraint2}]
     res = minimize(objective, [stop + 1], bounds=bounds, constraints=cons, method='SLSQP')
-
-    return round(res.x[0]*4)/4
+    #calculate all the data based on the entry
+    entry = round(res.x[0]*4)/4
+    diff = entry - stop
+    entryCont = round((MAX_RISK / (diff / TICK_SIZE * TICK_VALUE)))
+    oneRScale = entry + diff 
+    oneRScaleCont = round(1/4*((MAX_RISK / (diff / TICK_SIZE * TICK_VALUE))))
+    highProbCont = entryCont - oneRScaleCont
+    return entry, entryCont , oneRScale, oneRScaleCont, highProbCont
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -42,7 +63,7 @@ def index():
         stop = float(request.form['stop'])
         target = float(request.form['target'])
         Rmultiple = float(request.form['Rmultiple'])
-        value = calculate_entry(stop, target, Rmultiple)
+        entry = calculate_entry(stop, target, Rmultiple)
         stopSize = value - stop
         contract_number = (MAX_RISK / (stopSize / TICK_SIZE * TICK_VALUE))
         oneRScaleValue = value + stopSize
@@ -52,7 +73,7 @@ def index():
         if request.form.get('action') == 'submitTrade':
             value = value * 2
             
-        return render_template('index.html', value=value)
+        return render_template('index.html', entry=entry)
         
     else:
         with open('config.json') as f:
@@ -62,6 +83,7 @@ def index():
         MAX_RISK = config['MaxRisk']
         TICK_SIZE = config['TickSize']
         TICK_VALUE = config['TickValue']
+
         return render_template('index.html' ,default_Rmultiple=default_Rmultiple)
 
 @app.route('/calculate_entry', methods=['POST'])
@@ -69,8 +91,8 @@ def calculate_entry_api():
     stop = float(request.json['stop'])
     target = float(request.json['target'])
     Rmultiple = float(request.json['Rmultiple'])
-    value = calculate_entry(stop, target, Rmultiple)
-    return jsonify({'value': value})
+    entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry(stop, target, Rmultiple)
+    return jsonify({'entry': entry, 'entryCont': entryCont, 'oneRScale': oneRScale, 'oneRScaleCont': oneRScaleCont, 'highProbCont': highProbCont })
 
 # Endpoint for loading the configuration data
 @app.route('/load_config')

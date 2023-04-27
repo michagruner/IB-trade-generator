@@ -47,8 +47,13 @@ $(document).ready(function() {
       contentType: "application/json", // Set the content type to JSON
       data: JSON.stringify(formData), // Convert the form data to a JSON object
       success: function(response) {
+	console.log(response); //Print the response object to the console
         // Update the calculated entry value in the HTML
-        $("#value").val(response["value"]);
+        $("#entry").val(response["entry"]);
+        $("#entryCont").val(response["entryCont"]);
+        $("#oneRScale").val(response["oneRScale"]);
+        $("#oneRScaleCont").val(response["oneRScaleCont"]);
+        $("#highProbCont").val(response["highProbCont"]);
       }
     });
   });
@@ -70,16 +75,18 @@ $(document).ready(function() {
 
 		<label for="target">High Probability Target:</label>
 		<input type="number" name="target" id="target" step="0.25" required value="{{ request.form.get('target', '') }}">
-		<label for="target">High Probability Target contracts:</label>
-		<input type="number" name="targetCont" id="targetCont" step="1" required value="{{ request.form.get('targetCont', '') }}">
+		<label for="highProbCont">High Probability Target contracts:</label>
+		<input type="number" name="highProbCont" id="highProbCont" step="1" value="{{ highProbCont }}">
 
-		<label for="target">1R Scale Target:</label>
-		<input type="number" name="scaletarget" id="scaletarget" step="0.25" required value="{{ request.form.get('scaletarget', '') }}">
-		<label for="target">1R Scale Target contracts:</label>
-		<input type="number" name="scaletargetCont" id="scaletargetCont" step="1" required value="{{ request.form.get('scaletargetCont', '') }}">
+		<label for="oneRScale">1R-Scale-Target:</label>
+		<input type="number" name="oneRScale" id="oneRScale" step="0.25" value="{{ oneRScale }}">
+		<label for="oneRScaleCont">1R-Scale Contracts:</label>
+		<input type="number" name="oneRScaleCont" id="oneRScaleCont" step="1" value="{{ oneRScaleCont }}">
 
 		<label for="entry-value">Calculated Entry:</label>
-		<input type="number" name="entry" id="value" step="0.25" value="{{ value }}">
+		<input type="number" name="entry" id="entry" step="0.25" value="{{ entry }}">
+		<label for="entry-value">Entry Contracts:</label>
+		<input type="number" name="entryCont" id="entryCont" step="1" value="{{ entryCont }}">
 
 		<input type="submit" value="Calculate Entry">
 	</form>
