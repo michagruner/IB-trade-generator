@@ -4,13 +4,16 @@ from flask import request
 from flask import jsonify
 from scipy.optimize import minimize
 import numpy as np
+import json
 
 app = Flask(__name__)
 
 
-MAX_RISK = 200
-TICK_SIZE = 0.25
-TICK_VALUE = 1.25
+default_Rmultiple = 2.5
+MAX_RISK = 0
+TICK_SIZE = 0
+TICK_VALUE = 0
+
 
 def calculate_entry(stop, target, Rmultiple):
     def objective(x):
@@ -52,7 +55,14 @@ def index():
         return render_template('index.html', value=value)
         
     else:
-        return render_template('index.html')
+        with open('config.json') as f:
+           config = json.load(f)
+
+        default_Rmultiple = config['Rmultiple']
+        MAX_RISK = config['MaxRisk']
+        TICK_SIZE = config['TickSize']
+        TICK_VALUE = config['TickValue']
+        return render_template('index.html' ,default_Rmultiple=default_Rmultiple)
 
 @app.route('/calculate_entry', methods=['POST'])
 def calculate_entry_api():
@@ -61,6 +71,47 @@ def calculate_entry_api():
     Rmultiple = float(request.json['Rmultiple'])
     value = calculate_entry(stop, target, Rmultiple)
     return jsonify({'value': value})
+
+# Endpoint for loading the configuration data
+@app.route('/load_config')
+def load_config():
+    with open('config.json') as f:
+        config_data = json.load(f)
+    return jsonify(config_data)
+
+# Endpoint for saving the configuration data
+@app.route('/save_config', methods=['POST'])
+def save_config():
+    config_data = request.json
+    with open('config.json', 'w') as f:
+        json.dump(config_data, f)
+    return jsonify({'success': True})
+
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    if request.method == 'POST':
+        # Get the form data
+        new_config = {
+            'Rmultiple': float(request.form.get('Rmultiple')),
+            'MaxRisk': float(request.form.get('MaxRisk')),
+            'TickSize': float(request.form.get('TickSize')),
+            'TickValue': float(request.form.get('TickValue'))
+        }
+
+        # Save the new config to the file
+        with open('config.json', 'w') as f:
+            json.dump(new_config, f, indent=4)
+
+        # Redirect back to the index page
+        return redirect('/')
+
+    else:
+        # Load the current config from the file
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+
+        # Render the config page template with the current config
+        return render_template('config.html', config=config)
 
 
 if __name__ == '__main__':

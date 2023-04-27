@@ -2,11 +2,12 @@
 <html>
 <head>
 <style>
-
 	  form {
-	    display: flex;
-	    flex-direction: column;
-	    align-items: flex-start;
+	    display: grid;
+	    grid-template-columns: 1fr 1fr 1fr 1fr;
+	    grid-gap: 10px;
+	    align-items: right;
+	    margin-right: 10px;
 	  }
 
 	  label, input {
@@ -19,7 +20,11 @@
 	  input[type="submit"] {
 	    width: auto;
 	  }
-}
+	  .form-container {
+	    max-width: 60px;
+	  }
+
+
 
 </style>
 	<title>My Flask App</title>
@@ -47,27 +52,42 @@ $(document).ready(function() {
       }
     });
   });
+    // Set the default value for Rmultiple
+    $("input[name='Rmultiple']").val({{ default_Rmultiple }});
 });
 </script>
 
 </head>
 <body>
-	<h1>My Flask App</h1>
+	<h1>Trade-Generator</h1>
+	<div class="form-container">
 	<form id="entry-form">
+		<label for="Rmultiple">R-Multiple:</label>
+		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" required value="{{ request.form.get('Rmultiple', default_Rmultiple) }}">
+
 		<label for="stop">Stop:</label>
-		<input type="number" name="stop" id="stop" step="0.25" required value="{{ request.form.get('stop', '') }}"><br>
+		<input type="number" name="stop" id="stop" step="0.25" required value="{{ request.form.get('stop', '') }}">
 
 		<label for="target">High Probability Target:</label>
-		<input type="number" name="target" id="target" step="0.25" required value="{{ request.form.get('target', '') }}"><br>
+		<input type="number" name="target" id="target" step="0.25" required value="{{ request.form.get('target', '') }}">
+		<label for="target">High Probability Target contracts:</label>
+		<input type="number" name="targetCont" id="targetCont" step="1" required value="{{ request.form.get('targetCont', '') }}">
 
-		<label for="Rmultiple">R-Multiple:</label>
-		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" required value="{{ request.form.get('Rmultiple', '') }}"><br>
+		<label for="target">1R Scale Target:</label>
+		<input type="number" name="scaletarget" id="scaletarget" step="0.25" required value="{{ request.form.get('scaletarget', '') }}">
+		<label for="target">1R Scale Target contracts:</label>
+		<input type="number" name="scaletargetCont" id="scaletargetCont" step="1" required value="{{ request.form.get('scaletargetCont', '') }}">
 
 		<label for="entry-value">Calculated Entry:</label>
-		<input type="number" name="entry" id="value" step="0.25" value="{{ value }}"><br>
+		<input type="number" name="entry" id="value" step="0.25" value="{{ value }}">
 
 		<input type="submit" value="Calculate Entry">
 	</form>
+	</div>
+
+	<br><br><br><br>
+	<a href="/config">Configure Settings</a>
+
 </body>
 </html>
 
