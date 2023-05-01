@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Transaction Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+
+    label {
+      margin-bottom: 10px;
+    }
+
+    input[type="text"] {
+      width: 200px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .buy {
+      color: #fff;
+      background-color: green;
+    }
+
+    .sell {
+      color: #fff;
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <form>
+    <label for="transaction-type">Transaction Type:</label>
+    <input type="text" id="transaction-type" name="transaction-type" value="buy" readonly class="buy">
+  </form>
+
+  <script>
+    const transactionType = document.querySelector('#transaction-type');
+
+    transactionType.addEventListener('click', function() {
+      if (transactionType.value === 'buy') {
+        transactionType.value = 'sell';
+        transactionType.classList.remove('buy');
+        transactionType.classList.add('sell');
+      } else {
+        transactionType.value = 'buy';
+        transactionType.classList.remove('sell');
+        transactionType.classList.add('buy');
+      }
+    });
+  </script>
+</body>
+</html>
+
