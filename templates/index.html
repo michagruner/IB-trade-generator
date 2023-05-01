@@ -24,6 +24,26 @@
 	    max-width: 60px;
 	  }
 
+    input[type="text"] {
+      width: 200px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .buy {
+      color: #fff;
+      background-color: green;
+    }
+
+    .sell {
+      color: #fff;
+      background-color: red;
+    }
 
 
 </style>
@@ -59,14 +79,20 @@ $(document).ready(function() {
   });
     // Set the default value for Rmultiple
     $("input[name='Rmultiple']").val({{ default_Rmultiple }});
+   
 });
 </script>
 
 </head>
 <body>
 	<h1>Trade-Generator</h1>
+  <form>
+    <label for="transaction-type">Transaction Type:</label>
+    <input class="buy" type="text" id="transaction-type" name="transaction-type" value="buy" readonly>
+  </form>
 	<div class="form-container">
 	<form id="entry-form">
+
 		<label for="Rmultiple">R-Multiple:</label>
 		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" required value="{{ request.form.get('Rmultiple', default_Rmultiple) }}">
 
@@ -94,7 +120,21 @@ $(document).ready(function() {
 
 	<br><br><br><br>
 	<a href="/config">Configure Settings</a>
+  <script>
+    const transactionType = document.querySelector('#transaction-type');
 
+    transactionType.addEventListener('click', function() {
+      if (transactionType.value === 'buy') {
+        transactionType.value = 'sell';
+        transactionType.classList.remove('buy');
+        transactionType.classList.add('sell');
+      } else {
+        transactionType.value = 'buy';
+        transactionType.classList.remove('sell');
+        transactionType.classList.add('buy');
+      }
+    });
+  </script>
 </body>
 </html>
 

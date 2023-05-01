@@ -22,7 +22,7 @@ with open('config.json') as f:
    TICK_SIZE = config['TickSize']
    TICK_VALUE = config['TickValue']
 
-def calculate_entry(stop, target, Rmultiple):
+def calculate_entry_long(stop, target, Rmultiple):
 
     with open('config.json') as f:
       config = json.load(f)
@@ -63,7 +63,7 @@ def index():
         stop = float(request.form['stop'])
         target = float(request.form['target'])
         Rmultiple = float(request.form['Rmultiple'])
-        entry = calculate_entry(stop, target, Rmultiple)
+        entry = calculate_entry_long(stop, target, Rmultiple)
         stopSize = value - stop
         contract_number = (MAX_RISK / (stopSize / TICK_SIZE * TICK_VALUE))
         oneRScaleValue = value + stopSize
@@ -91,7 +91,7 @@ def calculate_entry_api():
     stop = float(request.json['stop'])
     target = float(request.json['target'])
     Rmultiple = float(request.json['Rmultiple'])
-    entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry(stop, target, Rmultiple)
+    entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_long(stop, target, Rmultiple)
     return jsonify({'entry': entry, 'entryCont': entryCont, 'oneRScale': oneRScale, 'oneRScaleCont': oneRScaleCont, 'highProbCont': highProbCont })
 
 # Endpoint for loading the configuration data
