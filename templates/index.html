@@ -52,12 +52,13 @@
 <script>
 $(document).ready(function() {
   // Attach event listener to the form input fields
-  $("input[name='stop'], input[name='target'], input[name='Rmultiple']").on("input", function() {
+  $("input[name='stop'], input[name='target'], input[name='Rmultiple'], input[name='transaction-type']").on("input", function() {
     // Create an object to hold the form data
     var formData = {
       "stop": $("input[name='stop']").val(),
       "target": $("input[name='target']").val(),
-      "Rmultiple": $("input[name='Rmultiple']").val()
+      "Rmultiple": $("input[name='Rmultiple']").val(),
+      "transactionType": $("input[name='transaction-type']").val()
     };
 
     // Send the form data to the Flask server using an AJAX request
@@ -86,12 +87,14 @@ $(document).ready(function() {
 </head>
 <body>
 	<h1>Trade-Generator</h1>
-  <form>
-    <label for="transaction-type">Transaction Type:</label>
-    <input class="buy" type="text" id="transaction-type" name="transaction-type" value="buy" readonly>
-  </form>
+
+
 	<div class="form-container">
 	<form id="entry-form">
+                <label for="transaction-type">Transaction Type (click to change):</label>
+                <input class="buy" type="text" id="transaction-type" name="transaction-type" value="buy" readonly>
+	        <label for="maxRisk">Maximum Risk (in USD): </label>
+	        <input type="number" name="maxRisk" id="maxRisk" value="{{ maxRisk }}" readonly>
 
 		<label for="Rmultiple">R-Multiple:</label>
 		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" required value="{{ request.form.get('Rmultiple', default_Rmultiple) }}">
@@ -114,7 +117,7 @@ $(document).ready(function() {
 		<label for="entry-value">Entry Contracts:</label>
 		<input type="number" name="entryCont" id="entryCont" step="1" value="{{ entryCont }}">
 
-		<input type="submit" value="Calculate Entry">
+		<input type="submit" value="Submit-Trade">
 	</form>
 	</div>
 

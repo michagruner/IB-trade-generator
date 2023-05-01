@@ -22,14 +22,8 @@ with open('config.json') as f:
    TICK_SIZE = config['TickSize']
    TICK_VALUE = config['TickValue']
 
-def calculate_entry_long(stop, target, Rmultiple):
-
-    with open('config.json') as f:
-      config = json.load(f)
-
-      MAX_RISK = int(config['MaxRisk'])
-      TICK_SIZE = float(config['TickSize'])
-      TICK_VALUE = float(config['TickValue'])
+#optimize for the long-entry given a stop, target, multiple and risk
+def optimize_long(stop, target, Rmultiple, MAX_RISK, TICK_SIZE, TICK_VALUE):
 
     def objective(x):
         return x[0]
@@ -50,6 +44,45 @@ def calculate_entry_long(stop, target, Rmultiple):
     res = minimize(objective, [stop + 1], bounds=bounds, constraints=cons, method='SLSQP')
     #calculate all the data based on the entry
     entry = round(res.x[0]*4)/4
+    return entry
+
+#optimize for the short entry given a stop, target, multiple and risk
+def optimize_short(stop, target, Rmultiple, MAX_RISK, TICK_SIZE, TICK_VALUE):
+
+    def objective(x):
+        return x[0]
+
+    def constraint1(x):
+        diff = stop - x[0] 
+        contract_number = (MAX_RISK / (diff / TICK_SIZE * TICK_VALUE))
+        oneRScale = diff / TICK_SIZE * TICK_VALUE * 1 / 4 * contract_number
+        restScale = (x[0] - target) / TICK_SIZE * TICK_VALUE * 3 / 4 * contract_number 
+        return oneRScale + restScale - (Rmultiple * MAX_RISK)
+
+    def constraint2(x):
+        return stop - x[0] - 1  # difference between entry and stop should be greater than 1
+
+
+    bounds = [(target, stop)]
+    cons = [{'type': 'eq', 'fun': constraint1}, {'type': 'ineq', 'fun': constraint2}]
+    res = minimize(objective, [stop - 1], bounds=bounds, constraints=cons, method='SLSQP')
+    #calculate all the data based on the entry
+    entry = round(res.x[0]*4)/4
+    return entry
+
+
+
+#calculate the data for the long entry
+def calculate_entry_long(stop, target, Rmultiple):
+
+    with open('config.json') as f:
+      config = json.load(f)
+
+      MAX_RISK = int(config['MaxRisk'])
+      TICK_SIZE = float(config['TickSize'])
+      TICK_VALUE = float(config['TickValue'])
+
+    entry = round(optimize_long(stop, target, Rmultiple, MAX_RISK, TICK_SIZE, TICK_VALUE)*4)/4
     diff = entry - stop
     entryCont = round((MAX_RISK / (diff / TICK_SIZE * TICK_VALUE)))
     oneRScale = entry + diff 
@@ -57,18 +90,29 @@ def calculate_entry_long(stop, target, Rmultiple):
     highProbCont = entryCont - oneRScaleCont
     return entry, entryCont , oneRScale, oneRScaleCont, highProbCont
 
+
+#calculate the data for the short entry
+def calculate_entry_short(stop, target, Rmultiple):
+
+    with open('config.json') as f:
+      config = json.load(f)
+
+      MAX_RISK = int(config['MaxRisk'])
+      TICK_SIZE = float(config['TickSize'])
+      TICK_VALUE = float(config['TickValue'])
+
+    entry = round(optimize_short(stop, target, Rmultiple, MAX_RISK, TICK_SIZE, TICK_VALUE)*4)/4
+    diff = stop - entry
+    entryCont = round((MAX_RISK / (diff / TICK_SIZE * TICK_VALUE)))
+    oneRScale = entry - diff 
+    oneRScaleCont = round(1/4*((MAX_RISK / (diff / TICK_SIZE * TICK_VALUE))))
+    highProbCont = entryCont - oneRScaleCont
+    return entry, entryCont , oneRScale, oneRScaleCont, highProbCont
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        stop = float(request.form['stop'])
-        target = float(request.form['target'])
-        Rmultiple = float(request.form['Rmultiple'])
-        entry = calculate_entry_long(stop, target, Rmultiple)
-        stopSize = value - stop
-        contract_number = (MAX_RISK / (stopSize / TICK_SIZE * TICK_VALUE))
-        oneRScaleValue = value + stopSize
-        oneRScaleContracts = round(1 / 4 * contract_number)
-         
         
         if request.form.get('action') == 'submitTrade':
             value = value * 2
@@ -84,14 +128,20 @@ def index():
         TICK_SIZE = config['TickSize']
         TICK_VALUE = config['TickValue']
 
-        return render_template('index.html' ,default_Rmultiple=default_Rmultiple)
+        return render_template('index.html' ,default_Rmultiple=default_Rmultiple, maxRisk=MAX_RISK)
 
+#endpoint for taking in the values for stop target and risk multiples and returning all the trade data
 @app.route('/calculate_entry', methods=['POST'])
 def calculate_entry_api():
     stop = float(request.json['stop'])
     target = float(request.json['target'])
     Rmultiple = float(request.json['Rmultiple'])
-    entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_long(stop, target, Rmultiple)
+    transactionType = str(request.json['transactionType'])
+    if transactionType == 'buy':
+       entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_long(stop, target, Rmultiple)
+    else:
+       entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_short(stop, target, Rmultiple)
+
     return jsonify({'entry': entry, 'entryCont': entryCont, 'oneRScale': oneRScale, 'oneRScaleCont': oneRScaleCont, 'highProbCont': highProbCont })
 
 # Endpoint for loading the configuration data
