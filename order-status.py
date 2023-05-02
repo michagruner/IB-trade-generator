@@ -5,7 +5,7 @@ from pprint import pprint
 ib = IB()
 ib.connect()
 
-for o in ib.openOrders():
+for o in ib.trades():
     pprint(vars(o))
 
 

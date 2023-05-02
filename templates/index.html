@@ -92,7 +92,7 @@ $(document).ready(function() {
 	<div class="form-container">
 	<form id="entry-form">
                 <label for="transaction-type">Transaction Type (click to change):</label>
-                <input class="buy" type="text" id="transaction-type" name="transaction-type" value="buy" readonly>
+                <input class="buy" type="text" id="transaction-type" name="transaction-type" value="BUY" readonly>
 	        <label for="maxRisk">Maximum Risk (in USD): </label>
 	        <input type="number" name="maxRisk" id="maxRisk" value="{{ maxRisk }}" readonly>
 
@@ -117,7 +117,7 @@ $(document).ready(function() {
 		<label for="entry-value">Entry Contracts:</label>
 		<input type="number" name="entryCont" id="entryCont" step="1" value="{{ entryCont }}">
 
-		<input type="submit" value="Submit-Trade">
+		<input type="submit" formaction="/submitTrade" method="get" "value="Submit Trade">
 	</form>
 	</div>
 
@@ -127,12 +127,12 @@ $(document).ready(function() {
     const transactionType = document.querySelector('#transaction-type');
 
     transactionType.addEventListener('click', function() {
-      if (transactionType.value === 'buy') {
-        transactionType.value = 'sell';
+      if (transactionType.value === 'BUY') {
+        transactionType.value = 'SELL';
         transactionType.classList.remove('buy');
         transactionType.classList.add('sell');
       } else {
-        transactionType.value = 'buy';
+        transactionType.value = 'BUY';
         transactionType.classList.remove('sell');
         transactionType.classList.add('buy');
       }

@@ -6,7 +6,7 @@
 </head>
 <body>
 	<h1>Configuration Page</h1>
-	<form id="config-form">
+	<form id="config-form" method="POST">
 		<label for="Rmultiple">R-Multiple:</label>
 		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" value="{{ config.Rmultiple }}"><br>
 
@@ -19,42 +19,10 @@
 		<label for="TickValue">Tick Value:</label>
 		<input type="number" name="TickValue" id="TickValue" step="0.01" value="{{ config.TickValue }}"><br>
 
-		<input type="button" value="Save" id="save-button">
-		<input type="button" value="Cancel" id="cancel-button">
+		<input type="submit" value="save" formaction="/config" id="save-button" name="save_button">
+		<input type="submit" value="cancel" formaction="/config" id="cancel-button">
 	</form>
 
-	<script>
-	$(document).ready(function() {
-		// Attach event listener to the save button
-		$("#save-button").on("click", function() {
-			// Create an object to hold the form data
-			var formData = {
-				"Rmultiple": $("#Rmultiple").val(),
-				"MaxRisk": $("#MaxRisk").val(),
-				"TickSize": $("#TickSize").val(),
-				"TickValue": $("#TickValue").val()
-			};
-
-			// Send the form data to the Flask server using an AJAX request
-			$.ajax({
-				type: "POST",
-				url: "/save_config",
-				contentType: "application/json", // Set the content type to JSON
-				data: JSON.stringify(formData), // Convert the form data to a JSON object
-				success: function(response) {
-					// Redirect to the index page
-					window.location.href = "/";
-				}
-			});
-		});
-
-		// Attach event listener to the cancel button
-		$("#cancel-button").on("click", function() {
-			// Redirect to the index page
-			window.location.href = "/";
-		});
-	});
-	</script>
 </body>
 </html>
 
