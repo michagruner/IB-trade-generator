@@ -17,20 +17,6 @@ import asyncio
 app = Quart(__name__)
 app.secret_key = 'my_trade_app'
 
-"""
-global default_Rmultiple
-global MAX_RISK
-global TICK_SIZE
-global TICK_VALUE
-
-with open('config.json') as f:
-   config = json.load(f)
-
-   default_Rmultiple = config['Rmultiple']
-   MAX_RISK = config['MaxRisk']
-   TICK_SIZE = config['TickSize']
-   TICK_VALUE = config['TickValue']
-"""
     
 #create and place the bracket order to trade the contract
 async def Future_bracket_order(action, contractName, expiry, quantity, entryPrice, stopLossPrice, takeProfitPrice1, takeProfitQuantity1, takeProfitPrice2, takeProfitQuantity2):
