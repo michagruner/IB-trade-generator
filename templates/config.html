@@ -13,11 +13,16 @@
 		<label for="MaxRisk">Maximum Risk:</label>
 		<input type="number" name="MaxRisk" id="MaxRisk" step="1" value="{{ config.MaxRisk }}"><br>
 
-		<label for="TickSize">Tick Size:</label>
-		<input type="number" name="TickSize" id="TickSize" step="0.01" value="{{ config.TickSize }}"><br>
+		<label for="Contract">Contract:</label>
+		<select name="Contract" id="Contract">
+			<option value="MES" selected>E-Mini S and P Micro (MES)</option>
+			<option value="ES">E-Mini S and P (ES)</option>
 
-		<label for="TickValue">Tick Value:</label>
-		<input type="number" name="TickValue" id="TickValue" step="0.01" value="{{ config.TickValue }}"><br>
+		</select>
+
+		<label for="expiryMonth">ExpiryMonth (e.g. 202306):</label>
+		<input type="text" name="expiryMonth" id="expiryMonth"><br>
+
 
 		<input type="submit" value="save" formaction="/config" id="save-button" name="save_button">
 		<input type="submit" value="cancel" formaction="/config" id="cancel-button">

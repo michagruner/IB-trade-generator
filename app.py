@@ -169,8 +169,11 @@ async def index():
 
         default_Rmultiple = session['Rmultiple']
         MAX_RISK = session['MaxRisk']
+        ContName = session['ContName']
+        Expiry = session['Expiry']
+        TickValue = session['TickValue']
 
-        return await render_template('index.html' ,default_Rmultiple=default_Rmultiple, maxRisk=MAX_RISK)
+        return await render_template('index.html' ,default_Rmultiple=default_Rmultiple, maxRisk=MAX_RISK, ContName=ContName, Expiry=Expiry, TickValue=TickValue)
 
 @app.route('/submitTrade', methods=['GET'])
 async def submitTrade():
@@ -213,10 +216,24 @@ async def config():
         # Get the form data
         form = await request.form
         if form['save_button'] == 'save':
+
+            ib = ib_insync.IB()
+            await ib.connectAsync()
+
+            contract = ib_insync.Future(str(form['Contract']), str(form['expiryMonth']), 'CME')
+            mesDetails = await ib.reqContractDetailsAsync(contract)
+            tickSize=float(mesDetails[0].minTick)
+            multiplier=float(mesDetails[0].contract.multiplier)
+            expiry=str(mesDetails[0].contract.lastTradeDateOrContractMonth)
+            name=str(mesDetails[0].longName)
+            ib.disconnect()
+
             session['Rmultiple'] = float(form['Rmultiple'])
             session['MaxRisk'] = float(form['MaxRisk'])
-            session['TickSize'] = float(form['TickSize'])
-            session['TickValue'] = float(form['TickValue'])
+            session['TickSize'] = tickSize
+            session['TickValue'] = tickSize * multiplier
+            session['ContName'] = name
+            session['Expiry'] = expiry
             print("Session variables filled")
         return redirect('/')
 
