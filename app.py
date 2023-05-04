@@ -12,6 +12,7 @@ import numpy as np
 import json
 import ib_insync
 import asyncio
+from pprint import pprint
  
 
 app = Quart(__name__)
@@ -19,12 +20,13 @@ app.secret_key = 'my_trade_app'
 
     
 #create and place the bracket order to trade the contract
-async def Future_bracket_order(action, contractName, expiry, quantity, entryPrice, stopLossPrice, takeProfitPrice1, takeProfitQuantity1, takeProfitPrice2, takeProfitQuantity2):
+async def Future_bracket_order(action, quantity, entryPrice, stopLossPrice, takeProfitPrice1, takeProfitQuantity1, takeProfitPrice2, takeProfitQuantity2):
     # connect to the IB Gateway or TWS application
     ib = ib_insync.IB()
     await ib.connectAsync()
 
-    contract = ib_insync.Future(contractName, expiry, 'CME')
+    contract = ib_insync.Future(session['Symbol'],session['Expiry'],'CME')
+    #pprint(vars(contract))
 
     assert action in ('BUY', 'SELL')
     reverseAction = 'BUY' if action == 'SELL' else 'SELL'
@@ -54,12 +56,8 @@ async def Future_bracket_order(action, contractName, expiry, quantity, entryPric
     ib.placeOrder(contract, takeProfit)
     ib.placeOrder(contract, stopLoss)
 
-    #ib.sleep(1)
-
     # disconnect from the IB Gateway or TWS application
     ib.disconnect()
-
-
 
 #optimize for the long-entry given a stop, target, multiple and risk
 def optimize_long(stop, target, Rmultiple, MAX_RISK, TICK_SIZE, TICK_VALUE):
@@ -177,7 +175,7 @@ async def submitTrade():
 
     print('Submitting trade')
     
-    await Future_bracket_order( transactionType , 'MES' , '202306', entryCont, entry, stop, oneRScale, oneRScaleCont, target, highProbCont)
+    await Future_bracket_order( transactionType , entryCont, entry, stop, oneRScale, oneRScaleCont, target, highProbCont)
     return redirect('/')
 
 
@@ -210,6 +208,7 @@ async def config():
             mesDetails = await ib.reqContractDetailsAsync(contract)
             tickSize=float(mesDetails[0].minTick)
             multiplier=float(mesDetails[0].contract.multiplier)
+            symbol=str(form['Contract'])
             expiry=str(mesDetails[0].contract.lastTradeDateOrContractMonth)
             name=str(mesDetails[0].longName)
             ib.disconnect()
@@ -220,6 +219,7 @@ async def config():
             session['TickValue'] = tickSize * multiplier
             session['ContName'] = name
             session['Expiry'] = expiry
+            session['Symbol'] = symbol
             print("Session variables filled")
         return redirect('/')
 
