@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Configuration Page</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+	<h1>Configuration Page</h1>
+	<form id="config-form" method="POST">
+
+
+		<label for="Contract">Contract:</label>
+		<select name="Contract" id="Contract">
+			<option value="MES" selected>E-Mini S and P Micro (MES)</option>
+			<option value="ES">E-Mini S and P (ES)</option>
+		</select>
+
+		<label for="Rmultiple">R-Multiple:</label>
+		<input type="number" name="Rmultiple" id="Rmultiple" step="0.1" value="{{ config.Rmultiple }}"><br>
+
+		<label for="MaxRisk">Maximum Risk:</label>
+		<input type="number" name="MaxRisk" id="MaxRisk" step="1" value="{{ config.MaxRisk }}"><br>
+		<label for="TickSize">Tick Size:</label>
+		<input type="number" name="TickSize" id="TickSize" step="0.01" value="{{ config.TickSize }}"><br>
+		<label for="TickValue">Tick Value:</label>
+		<input type="number" name="TickValue" id="TickValue" step="0.01" value="{{ config.TickValue }}"><br>
+
+
+		<input type="submit" value="save" formaction="/config_offline" id="save-button" name="save_button">
+		<input type="submit" value="cancel" formaction="/" id="cancel-button">
+	</form>
+
+</body>
+</html>
+

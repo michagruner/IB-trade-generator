@@ -18,6 +18,17 @@ from pprint import pprint
 app = Quart(__name__)
 app.secret_key = 'my_trade_app'
 
+
+async def check_TWS():
+   try: 
+       ib = ib_insync.IB()
+       await ib.connectAsync()
+       ib.disconnect()
+       session['Online'] = True
+   except:
+       session['Online'] = False
+   return
+
     
 #create and place the bracket order to trade the contract
 async def Future_bracket_order(action, quantity, entryPrice, stopLossPrice, takeProfitPrice1, takeProfitQuantity1, takeProfitPrice2, takeProfitQuantity2):
@@ -149,7 +160,11 @@ async def index():
         
     else:
         if 'MaxRisk' not in session:
-            return redirect(url_for('config'))
+            await check_TWS()
+            if session['Online']:
+                return redirect(url_for('config_online'))
+            else:
+                return redirect(url_for('config_offline'))
 
         default_Rmultiple = session['Rmultiple']
         MAX_RISK = session['MaxRisk']
@@ -173,9 +188,12 @@ async def submitTrade():
     highProbCont = args.get("highProbCont")
 
 
-    print('Submitting trade')
-    
-    await Future_bracket_order( transactionType , entryCont, entry, stop, oneRScale, oneRScaleCont, target, highProbCont)
+    await check_TWS()
+    if session['Online']:
+        print('Submitting trade')
+        await Future_bracket_order( transactionType , entryCont, entry, stop, oneRScale, oneRScaleCont, target, highProbCont)
+    else:
+        print('not connected to TWS')
     return redirect('/')
 
 
@@ -193,37 +211,41 @@ async def calculate_entry_api():
 
     return jsonify({'entry': entry, 'entryCont': entryCont, 'oneRScale': oneRScale, 'oneRScaleCont': oneRScaleCont, 'highProbCont': highProbCont })
 
-# Endpoint for setting the configuration data
-@app.route('/config', methods=['GET', 'POST'])
-async def config():
+# Endpoint for setting the configuration data (online-version with connection to TWS)
+@app.route('/config_online', methods=['GET', 'POST'])
+async def config_online():
     if request.method == 'POST':
         # Get the form data
         form = await request.form
         if form['save_button'] == 'save':
+            try:
+               ib = ib_insync.IB()
+               await ib.connectAsync()
 
-            ib = ib_insync.IB()
-            await ib.connectAsync()
+               contract = ib_insync.Future(str(form['Contract']), str(form['expiryMonth']), 'CME')
+               mesDetails = await ib.reqContractDetailsAsync(contract)
+               tickSize=float(mesDetails[0].minTick)
+               multiplier=float(mesDetails[0].contract.multiplier)
+               symbol=str(form['Contract'])
+               expiry=str(mesDetails[0].contract.lastTradeDateOrContractMonth)
+               name=str(mesDetails[0].longName)
+               ib.disconnect()
 
-            contract = ib_insync.Future(str(form['Contract']), str(form['expiryMonth']), 'CME')
-            mesDetails = await ib.reqContractDetailsAsync(contract)
-            tickSize=float(mesDetails[0].minTick)
-            multiplier=float(mesDetails[0].contract.multiplier)
-            symbol=str(form['Contract'])
-            expiry=str(mesDetails[0].contract.lastTradeDateOrContractMonth)
-            name=str(mesDetails[0].longName)
-            ib.disconnect()
-
-            session['Rmultiple'] = float(form['Rmultiple'])
-            session['MaxRisk'] = float(form['MaxRisk'])
-            session['TickSize'] = tickSize
-            session['TickValue'] = tickSize * multiplier
-            session['ContName'] = name
-            session['Expiry'] = expiry
-            session['Symbol'] = symbol
+               session['Rmultiple'] = float(form['Rmultiple'])
+               session['MaxRisk'] = float(form['MaxRisk'])
+               session['TickSize'] = tickSize
+               session['TickValue'] = tickSize * multiplier
+               session['ContName'] = name
+               session['Expiry'] = expiry
+               session['Symbol'] = symbol
+               session['Online'] = True
+            except:
+               return redirect('/config')
             print("Session variables filled")
         return redirect('/')
 
     else:
+        #first call of the config page
         if 'MaxRisk' not in session:
            print("Session variables not filled")
            config = {
@@ -232,6 +254,7 @@ async def config():
                'TickSize': '0.25',
                'TickValue': '1.25'
            }
+        #config already set, so render the existing values
         else:
            config = {
                'Rmultiple': session['Rmultiple'],
@@ -240,8 +263,55 @@ async def config():
                'TickValue': session['TickValue']
            }
         # Render the config page template with the current config
-        return await render_template('config.html', config=config)
+        return await render_template('config_online.html', config=config)
 
+
+# Endpoint for setting the configuration data (online-version with connection to TWS)
+@app.route('/config_offline', methods=['GET', 'POST'])
+async def config_offline():
+    if request.method == 'POST':
+        # Get the form data
+        form = await request.form
+        if form['save_button'] == 'save':
+
+            session['Rmultiple'] = float(form['Rmultiple'])
+            session['MaxRisk'] = float(form['MaxRisk'])
+            session['TickSize'] = float(form['TickSize'])
+            session['TickValue'] = float(form['TickValue'])
+            session['ContName'] = str(form['Contract'])
+            session['Online'] = False
+            print("Session variables filled")
+        return redirect('/')
+
+    else:
+        #first call of the config page
+        if 'MaxRisk' not in session:
+           print("Session variables not filled")
+           config = {
+               'Rmultiple': '2.5',
+               'MaxRisk': '200',
+               'TickSize': '0.25',
+               'TickValue': '1.25'
+           }
+        #config already set, so render the existing values
+        else:
+           config = {
+               'Rmultiple': session['Rmultiple'],
+               'MaxRisk': session['MaxRisk'],
+               'TickSize': session['TickSize'],
+               'TickValue': session['TickValue']
+           }
+        # Render the config page template with the current config
+        return await render_template('config_offline.html', config=config)
+
+@app.route('/config', methods=['GET', 'POST'])
+async def config():
+    await check_TWS()
+    if session['Online']:
+        return redirect('/config_online')
+    else:
+        return redirect('/config_offline')
+    return redirect('/')
 
 
 if __name__ == '__main__':
