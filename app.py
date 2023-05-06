@@ -200,16 +200,20 @@ async def submitTrade():
 #endpoint for taking in the values for stop target and risk multiples and returning all the trade data
 @app.route('/calculate_entry', methods=['POST'])
 async def calculate_entry_api():
-    stop = float((await request.json)['stop'])
-    target = float((await request.json)['target'])
-    Rmultiple = float((await request.json)['Rmultiple'])
-    transactionType = str((await request.json)['transactionType'])
-    if transactionType == 'BUY':
-       entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_long(stop, target, Rmultiple)
-    else:
-       entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_short(stop, target, Rmultiple)
+    try:
+        stop = float((await request.json)['stop'])
+        target = float((await request.json)['target'])
+        Rmultiple = float((await request.json)['Rmultiple'])
+        transactionType = str((await request.json)['transactionType'])
+        if transactionType == 'BUY':
+           entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_long(stop, target, Rmultiple)
+        else:
+           entry, entryCont, oneRScale, oneRScaleCont, highProbCont = calculate_entry_short(stop, target, Rmultiple)
+        return jsonify({'entry': entry, 'entryCont': entryCont, 'oneRScale': oneRScale, 'oneRScaleCont': oneRScaleCont, 'highProbCont': highProbCont })
+    except:
+       print("no resonable values for stop, target, multiple or transaction type provided")
 
-    return jsonify({'entry': entry, 'entryCont': entryCont, 'oneRScale': oneRScale, 'oneRScaleCont': oneRScaleCont, 'highProbCont': highProbCont })
+    return jsonify({'entry': 0, 'entryCont': 0, 'oneRScale': 0, 'oneRScaleCont': 0, 'highProbCont': 0 })
 
 # Endpoint for setting the configuration data (online-version with connection to TWS)
 @app.route('/config_online', methods=['GET', 'POST'])
