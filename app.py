@@ -12,8 +12,23 @@ import numpy as np
 import json
 import ib_insync
 import asyncio
-from pprint import pprint
+import pprint
  
+
+class Order:
+    def __init__(self, parent_id, parent_lmt=None, parent_action=None, stop_id=None, stop_lmt=None, take_profit_id=None, take_profit_lmt1=None, take_profit_lmt2=None):
+        self.parent_id = parent_id
+        self.parent_lmt = parent_lmt
+        self.parent_action = parent_action
+        self.stop_id = stop_id
+        self.stop_lmt = stop_lmt
+        self.take_profit_id = take_profit_id
+        self.take_profit_lmt1 = take_profit_lmt1
+        self.take_profit_lmt2 = take_profit_lmt2
+
+    def __str__(self):
+        return f"Parent ID: {self.parent_id}, Parent LMT: {self.parent_lmt}, Parent Action: {self.parent_action}, Stop ID: {self.stop_id}, Stop LMT: {self.stop_lmt}, Take Profit ID: {self.take_profit_id}, Take Profit LMT1: {self.take_profit_lmt1}, Take Profit LMT2: {self.take_profit_lmt2}"
+
 
 app = Quart(__name__)
 app.secret_key = 'my_trade_app'
@@ -315,6 +330,62 @@ async def config():
         return redirect('/config_online')
     else:
         return redirect('/config_offline')
+    return redirect('/')
+
+@app.route('/orders', methods=['GET', 'POST'])
+async def orders():
+    # connect to the IB Gateway or TWS application
+    ib = ib_insync.IB()
+    await ib.connectAsync()
+
+    # Create a dictionary to store the orders by parent ID
+    orders = {}
+    for t in ib.trades():
+        #only do this if the orderId is not null
+        if t.order.orderId:
+            parent_id = t.order.parentId or t.order.orderId
+            if parent_id not in orders:
+                orders[parent_id] = Order(parent_id)
+            order = orders[parent_id]
+            #parent order
+            if t.order.parentId == 0:
+                order.parent_lmt = t.order.lmtPrice
+                order.parent_action = t.order.action
+            #take profit order
+            elif t.order.orderType == 'LMT':
+                if t.order.action == 'SELL':
+                    take_profit_lmt2 = t.order.lmtPrice + t.order.scalePriceIncrement
+                else:
+                    take_profit_lmt2 = t.order.lmtPrice - t.order.scalePriceIncrement
+                order.take_profit_id = t.order.orderId
+                order.take_profit_lmt1 = t.order.lmtPrice
+                order.take_profit_lmt2 = take_profit_lmt2
+            #stop order
+            elif t.order.orderType == 'STP':
+                order.stop_id = t.order.orderId
+                order.stop_lmt = t.order.auxPrice
+
+    # Print the orders
+    pp = pprint.PrettyPrinter(indent=4)
+    for order in orders.values():
+        #print(f"Parent ID: {parent_id}")
+        pp.pprint(vars(order))
+
+    # Disconnect from the IB Gateway or TWS application
+    ib.disconnect()
+
+    # Render the orders template
+    return await render_template('orders.html', orders_by_parent_id=orders)
+
+@app.route('/update_order/<int:parent_id>', methods=['POST'])
+async def update_order(parent_id):
+    order = orders_by_parent_id[parent_id]
+    order.parentLMT = float(request.form['parent_lmt'])
+    order.takeProfitId = int(request.form['take_profit_id'])
+    order.takeProfitLimit1 = float(request.form['take_profit_limit_1'])
+    order.takeProfitLimit2 = float(request.form['take_profit_limit_2'])
+    order.stopID = int(request.form['stop_id'])
+    order.stopLimit = float(request.form['stop_limit'])
     return redirect('/')
 
 
