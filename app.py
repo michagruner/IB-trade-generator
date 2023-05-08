@@ -379,13 +379,46 @@ async def orders():
 
 @app.route('/update_order/<int:parent_id>', methods=['POST'])
 async def update_order(parent_id):
-    order = orders_by_parent_id[parent_id]
-    order.parentLMT = float(request.form['parent_lmt'])
-    order.takeProfitId = int(request.form['take_profit_id'])
-    order.takeProfitLimit1 = float(request.form['take_profit_limit_1'])
-    order.takeProfitLimit2 = float(request.form['take_profit_limit_2'])
-    order.stopID = int(request.form['stop_id'])
-    order.stopLimit = float(request.form['stop_limit'])
+
+    # Create a dictionary to store the orders by parent ID
+    orders_by_id = {}
+    contracts_by_id = {}
+    form = await request.form
+    # connect to the IB Gateway or TWS application
+    ib = ib_insync.IB()
+    await ib.connectAsync()
+    for trade in ib.trades():
+        orders_by_id[trade.order.orderId]=trade.order
+        contracts_by_id[trade.order.orderId]=trade.contract
+
+    #original order
+    order = orders_by_id[parent_id]
+    contract = contracts_by_id[parent_id]
+    order.lmtPrice = float(form['parent_lmt'])
+    ib.placeOrder(contract, order)
+    
+    #take profit order
+    takeProfitID = float(form['take_profit_id'])
+    order = orders_by_id[takeProfitID]
+    contract = contracts_by_id[takeProfitID]
+    order.lmtPrice = float(form['take_profit_limit_1'])
+    scaleInc = (abs(float(form['take_profit_limit_2'])-float(form['take_profit_limit_1'])))
+    order.scalePriceIncrement = scaleInc
+    ib.placeOrder(contract, order)
+
+    stopID = float(form['stop_id'])
+    order = orders_by_id[stopID]
+    contract = contracts_by_id[stopID]
+    order.auxPrice = float(form['stop_limit']) 
+    ib.placeOrder(contract, order)
+
+    ib.disconnect()
+    #order.parentLMT = float(request.form['parent_lmt'])
+    #order.takeProfitId = int(request.form['take_profit_id'])
+    #order.takeProfitLimit1 = float(request.form['take_profit_limit_1'])
+    #order.takeProfitLimit2 = float(request.form['take_profit_limit_2'])
+    #order.stopID = int(request.form['stop_id'])
+    #order.stopLimit = float(request.form['stop_limit'])
     return redirect('/')
 
 

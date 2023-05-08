@@ -1,56 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style>
-	  .tradeform {
-	    display: grid;
-	    grid-template-columns: 1fr 1fr 1fr 1fr;
-	    grid-gap: 10px;
-	    align-items: right;
-	    margin-right: 10px;
-	  }
+	<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
-	  label, input {
-	    margin: 5px 0;
-	    width: 200px;
-            height: 40px;
-            font-size: 20px;
-	  }
-
-	  input[type="submit"] {
-	    width: auto;
-	  }
-	  .form-container {
-	    max-width: 60px;
-	  }
-
-    input[type="text"] {
-      width: 200px;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      font-weight: bold;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .longtext {
-	    width:400px;
-	}  
-
-    .buy {
-      color: #fff;
-      background-color: green;
-    }
-
-    .sell {
-      color: #fff;
-      background-color: red;
-    }
-
-
-</style>
 	<title>Trade-Generator</title>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
@@ -134,8 +86,13 @@ $(document).ready(function() {
 	</form>
 	</div>
 
-	<br><br><br><br>
+	<br><br>
+
+	<a href="/orders" class="button">update orders</a>
+	<br><br>
+
 	<a href="/config">Configure Settings</a>
+
   <script>
     const transactionType = document.querySelector('#transaction-type');
 

@@ -1,0 +1,61 @@
+
+	  .tradeform {
+	    display: grid;
+	    grid-template-columns: 1fr 1fr 1fr 1fr;
+	    grid-gap: 10px;
+	    align-items: right;
+	    margin-right: 10px;
+	  }
+
+	  p {
+            font-size: 20px;
+	  }
+	  label, input {
+	    margin: 5px 0;
+	    width: 200px;
+            height: 40px;
+            font-size: 20px;
+	  }
+
+	  input[type="submit"] {
+	    width: auto;
+	  }
+	  .form-container {
+	    max-width: 60px;
+	  }
+
+    input[type="text"] {
+      width: 200px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .longtext {
+	    width:400px;
+	}  
+
+    .buy {
+      color: #fff;
+      background-color: green;
+    }
+
+    .sell {
+      color: #fff;
+      background-color: red;
+    }
+    .button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  border: none;
+}
+
+
