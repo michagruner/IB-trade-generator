@@ -9,13 +9,16 @@
     {% for parent_id, order in orders_by_parent_id.items() %}
         <form action="{{ url_for('update_order', parent_id=parent_id) }}" method="POST">
 		<p>Parent ID: {{ parent_id }} Parent action: {{ order.parent_action }}</p>
-            <p>Parent Limit: <input type="number" name="parent_lmt" id="parent_lmt" step="0.25" value="{{ order.parent_lmt }}"></p>
+            <input type="number" hidden name="parent_permid" id="parent_permid" value="{{ order.parent_permid }}" readonly>
+	    <p>Parent Limit: <input type="number" name="parent_lmt" id="parent_lmt" step="0.25" value="{{ order.parent_lmt }}" {% if not order.parent_live %}readonly{% endif %}></p>
             <input type="number" hidden name="take_profit_id" id="take_profit_id" value="{{ order.take_profit_id }}" readonly>
-            <p>1R Scale Out: <input type="number" name="take_profit_limit_1" step="0.25" value="{{ order.take_profit_lmt1 }}"></p>
+            <input type="number" hidden name="take_profit_permid" id="take_profit_permid" value="{{ order.take_profit_permid }}" readonly>
+	    <p>1R Scale Out: <input type="number" name="take_profit_limit_1" step="0.25" value="{{ order.take_profit_lmt1 }}" {% if not order.take_profit_live %}readonly{% endif %}></p>
             <p>High Proability Target : <input type="number" name="take_profit_limit_2" step="0.25" value="{{ order.take_profit_lmt2 }}"></p>
             <input hidden type="number" name="stop_id" value="{{ order.stop_id }}" readonly>
-            <p>Stop Limit: <input type="number" name="stop_limit" step="0.25" value="{{ order.stop_lmt }}"></p>
-            <p><input type="submit" value="Update"></p>
+            <input type="number" hidden name="stop_permid" value="{{ order.stop_permid }}" readonly>
+	    <p>Stop Limit: <input type="number" name="stop_limit" step="0.25" value="{{ order.stop_lmt }}" {% if not order.stop_live %}readonly{% endif %}></p>
+	    {% if order.parent_live or order.take_profit_live or order.stop_live %}<p><input type="submit" value="Update"></p> {% endif %}
         </form>
     {% endfor %}
 
